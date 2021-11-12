@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "bTbgvT3lGD63vinswMFf6p3fBE2t2+oEQ8y0PPhI3NGwz3JViQuhg8Lw/jh0KI+XGWTPRU3YBDMB+GgKsI8GqQ==",
+  "success": true,
+  "projectFilePath": "C:\\home\\Code\\ascii\\Server\\Server.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\andre\\.nuget\\packages\\enet-csharp\\2.4.7\\enet-csharp.2.4.7.nupkg.sha512",
+    "C:\\Users\\andre\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\5.0.12\\microsoft.netcore.app.host.win-x64.5.0.12.nupkg.sha512"
+  ],
+  "logs": []
+}

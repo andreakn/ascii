@@ -19,30 +19,34 @@ namespace Ascii
 
             state = new GameState
             {
-                PlayerNumber = playerNumber,
                 Map = mapString.Replace("\r", "").Split("\n").Select(line => line.ToCharArray()).ToArray(),
-                PlayerViewAngle = 0,
                 ScreenBuffer = new char[0],
                 //Redness = 0
             };
             state.ReadStartingPositionFromMap(playerNumber);
             theMap = new Map(state);
+            foreach (var mob in theMap.ReadAndRemoveMobs())
+            {
+                state.Mobs.Add(mob);
+            }
             _inventory = new Inventory(state);
-            _movement = new PlayerMovement(state, _inventory);
+            _movement = new Movement(state, _inventory);
             _playerView = new PlayerView(state);
             _sprites = new Sprites(state);
             _tweak = new GuiTweaks(state);
             _scoring = new Scoring(state);
             _lazer = new Lazer(state);
+            _enemyMovement = new EnemyMovement(state, _movement);
         }
 
-        private readonly PlayerMovement _movement;
+        private readonly Movement _movement;
         private readonly Sprites _sprites;
         private readonly PlayerView _playerView;
         private readonly GuiTweaks _tweak;
         private readonly Scoring _scoring;
         private readonly Lazer _lazer;
         private readonly Inventory _inventory;
+        private readonly EnemyMovement _enemyMovement;
 
         public async Task Run()
         {
@@ -82,8 +86,11 @@ namespace Ascii
                 var elapsed = (t2 - t1).TotalSeconds;
                 t1 = t2;
                 _movement.HandleMovementForPlayer(elapsed);
+                _enemyMovement.HandleEnemyMovements(elapsed);
+
                 _scoring.CalculateScore();
                 _tweak.TweakGuiBasedOnUserInput();
+
                 _playerView.RenderViewToScreenBuffer();
                 _sprites.RenderSpritesToScreenBuffer();
 
@@ -133,14 +140,10 @@ namespace Ascii
         private void RenderScreenBufferToConsole()
         {
             Console.SetCursorPosition(0,0);
-            //var hexValue = (0xFF - state.Redness).ToString("X");
-            //var color = $"#FF{hexValue}{hexValue}";
-            //if (state.LazerMapCoords.Any(lc => lc.Schmequals(state.PlayerCoord)))
-            //{
-            //    color = "#FF0000";
-            //}
-            Console.Write(new string(state.ScreenBuffer));//.Pastel(color));
-            Console.WriteLine($"p:{state.PlayerCoord.X}/{state.PlayerCoord.Y} ({state.PlayerViewAngle})                                                            ".Pastel(Color.White));
+           var color = $"#BC2732";
+            
+            Console.Write(new string(state.ScreenBuffer).Pastel(color));
+            Console.WriteLine($"p:{state.Player.Coord.X}/{state.Player.Coord.Y} ({state.Player.ViewAngle})                                                            ".Pastel(Color.White));
         }
 
        

@@ -4,14 +4,103 @@ using System.Linq;
 
 namespace Ascii
 {
+    public class Entity
+    {
+        public Coord Coord { get; set; }
+        public double ViewAngle { get; set; }
+        public double FOV { get; set; }
+
+        public int Speed { get; set; } = 7;
+    }
+
+    public class Player : Entity
+    {
+        public Player()
+        {
+            Coord = new Coord
+            {
+                X = 20,
+                Y = 20
+            };
+            FOV = 3.14159f / 4.0f;
+        }
+    }
+
+    public class Mob: Entity
+    {
+        private double RenderDepth = 7;
+        public  string prevInput { get; set; }= "";
+
+        public Mob()
+        {
+            Speed = 1;
+        }
+
+        public double? CanSeePlayerAtAngle(Player statePlayer, GameState state)
+        {
+            double? foundAt = null;
+            var testAngle = 0.0;
+            
+            while (foundAt == null && testAngle < Math.PI * 2)
+            {
+                foundAt = RayTrace(state, Coord, testAngle, statePlayer.Coord);
+                testAngle += 0.2;
+            }
+            return null;
+        }
+
+
+        private double? RayTrace(GameState state, Coord fromCoord, double rayAngle, Coord targetCoord)
+        {
+            var rayResolution = 0.1;
+            var distanceToWall = 0.0;
+
+            var xFactor = Math.Sin(rayAngle);
+            var yFactor = Math.Cos(rayAngle);
+
+            var rayEndX = 0;
+            var rayEndY = 0;
+
+            while (distanceToWall < RenderDepth)
+            {
+                distanceToWall += rayResolution;
+                rayEndX = (int)(fromCoord.X + (xFactor * distanceToWall));
+                rayEndY = (int)(fromCoord.Y + (yFactor * distanceToWall));
+
+                if (rayEndY == (int)targetCoord.Y && rayEndX == (int)targetCoord.X)
+                {
+                    return rayAngle;
+                }
+               
+                if (rayEndX < 0 || rayEndX >= state.MapWidth || rayEndY < 0 || rayEndY >= state.MapHeight)
+                {
+                    break;
+                }
+                if (state.Map[rayEndY][rayEndX] == '#')
+                {
+                    break;
+                }
+            }
+
+            return null;
+        }
+
+        public bool IsNear(double x, double y)
+        {
+            return Math.Abs(Coord.X - x) <= 0.5
+                   && Math.Abs(Coord.Y - y) <= 0.5;
+        }
+    }
+
+  
     public class GameState
     {
         private char[][] _map;
         public char[] ScreenBuffer { get; set; }
-        public double FOV { get; set; }= 3.14159f / 4.0f;   // Field of View
         public double RenderDepth { get; set; }= 16.0f;           // Maximum rendering distance
 
-
+        public List<Mob> Mobs { get; set; } = new List<Mob>();
+        public Player Player { get; set; } = new Player();
 
 
         public void RecalculateScreenBuffer()
@@ -37,14 +126,11 @@ namespace Ascii
         }
 
        
-        public double PlayerViewAngle { get; set; }
         public int MapWidth { get; set; }
         public int MapHeight{ get; set; }
         //public int Redness { get; set; }
         public List<Coord> LazerMapCoords { get; set; } = new List<Coord>();
         public List<LazerVector> LazerVectors { get; set; } = new List<LazerVector>();
-        public Coord PlayerCoord { get; set; } = new Coord();
-        public int PlayerNumber { get; set; }
         public char PlayerCurrentlyHolding { get; set; } = '.';
 
 
@@ -61,7 +147,7 @@ namespace Ascii
                 {
                     if (Map[y][x] == playerNumber.ToString()[0])
                     {
-                        PlayerCoord = new Coord {X = x, Y = y};
+                        Player.Coord = new Coord {X = x, Y = y};
                         Map[y][x] = '.';
                     }
                     else if ("123456789".Contains(Map[y][x]))
@@ -84,7 +170,15 @@ namespace Ascii
 
         public bool IsValidPlayerPosition(Coord coord)
         {
-            return ReadMap(coord) != '#';
+            if (Map.Length > coord.Y && coord.Y >= 0)
+            {
+                if(Map[(int)coord.Y].Length > coord.X && coord.X >= 0)
+                {
+                    return ReadMap(coord) != '#';
+                }
+            }
+
+            return false;
         }
 
         public Coord FigureOutNextMapCoord()
@@ -93,17 +187,17 @@ namespace Ascii
             var rayResolution = 0.1;
             var distance = 0.0;
 
-            var xFactor = Math.Sin(PlayerViewAngle);
-            var yFactor = Math.Cos(PlayerViewAngle);
+            var xFactor = Math.Sin(Player.ViewAngle);
+            var yFactor = Math.Cos(Player.ViewAngle);
 
-            var rayEndX = PlayerCoord.X;
-            var rayEndY = PlayerCoord.Y;
+            var rayEndX = Player.Coord.X;
+            var rayEndY = Player.Coord.Y;
 
-            while ( (int)rayEndX==(int)PlayerCoord.X && (int)rayEndY==(int)PlayerCoord.Y)
+            while ( (int)rayEndX==(int)Player.Coord.X && (int)rayEndY==(int)Player.Coord.Y)
             {
                 distance += rayResolution;
-                rayEndX = (int)(PlayerCoord.X + (xFactor * distance));
-                rayEndY = (int)(PlayerCoord.Y + (yFactor * distance));
+                rayEndX = (int)(Player.Coord.X + (xFactor * distance));
+                rayEndY = (int)(Player.Coord.Y + (yFactor * distance));
             }
 
             return new Coord { X = rayEndX, Y = rayEndY };

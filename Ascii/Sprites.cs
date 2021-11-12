@@ -47,7 +47,6 @@ namespace Ascii
         public Sprites(GameState state)
         {
             this.State = state;
-            var babe = File.ReadAllLines("MarsBabe.txt");
 
 
           
@@ -67,7 +66,7 @@ namespace Ascii
             for (int x = 0; x < State.ScreenWidth; x++)
             {
                 // For each column, calculate the projected ray angle into world space
-                double rayAngle = (State.PlayerViewAngle - (State.FOV / 2.0)) + (x * State.FOV / (double)State.ScreenWidth);
+                double rayAngle = (State.Player.ViewAngle - (State.Player.FOV / 2.0)) + (x * State.Player.FOV / (double)State.ScreenWidth);
                 var rayResolution = 0.1;
                 var distanceToSprite = 0.0;
 
@@ -82,15 +81,18 @@ namespace Ascii
                 var bullsEyeXY = 0.0;
 
 
-
+                if (Math.Abs(rayAngle) < 0.1)
+                {
+                    RegisterSprite(sprites, 0, 0, 's',x,100);
+                }
 
                 while (spriteHit == null && distanceToSprite < State.RenderDepth)
                 {
                     distanceToSprite += rayResolution;
-                    var rayTestX = (int)(State.PlayerCoord.X + (eyeX * distanceToSprite));
-                    var rayTestY = (int)(State.PlayerCoord.Y + (eyeY * distanceToSprite));
-                    var rayTestDX = (State.PlayerCoord.X + (eyeX * distanceToSprite));
-                    var rayTestDY = (State.PlayerCoord.Y + (eyeY * distanceToSprite));
+                    var rayTestX = (int)(State.Player.Coord.X + (eyeX * distanceToSprite));
+                    var rayTestY = (int)(State.Player.Coord.Y + (eyeY * distanceToSprite));
+                    var rayTestDX = (State.Player.Coord.X + (eyeX * distanceToSprite));
+                    var rayTestDY = (State.Player.Coord.Y + (eyeY * distanceToSprite));
 
                     if (rayTestX < 0 || rayTestX >= State.MapWidth || rayTestY < 0 || rayTestY >= State.MapHeight)
                     {
@@ -106,6 +108,10 @@ namespace Ascii
                         {
                             RegisterSprite(sprites, rayTestY, rayTestX, 'b', x, distanceToSprite);
                         }
+                        else if (State.Map[rayTestY][rayTestX] == 'c')
+                        {
+                            RegisterSprite(sprites, rayTestY, rayTestX, 'c', x, distanceToSprite);
+                        }
                         else if (State.Map[rayTestY][rayTestX] != '.')
                         {
                             bullsEyeY = (1 - 2* Math.Abs(rayTestDY - ((double) rayTestY + 0.5)));
@@ -115,6 +121,15 @@ namespace Ascii
                             {
                                 spriteHit = State.Map[rayTestY][rayTestX];
                             }
+                        }
+                    }
+
+                    foreach (var mob in State.Mobs)
+                    {
+                        if (mob.IsNear(rayTestDX, rayTestDY))
+                        {
+                            RegisterSprite(sprites, mob.Coord.Y, mob.Coord.X, 'c', x, distanceToSprite);
+
                         }
                     }
                 }
@@ -148,11 +163,11 @@ namespace Ascii
                 }
             }
 
-            foreach (var spriteInfo in sprites.OrderByDescending(s=>s.Distance))
+            foreach (var spriteInfo in sprites.Where(s=>s.SpriteName!="sun").OrderByDescending(s=>s.Distance))
             {
                 var spriteWidth = (spriteInfo.SpriteEndX - spriteInfo.SpriteStartX);
                 var middleX =  spriteInfo.SpriteStartX + spriteWidth/ 2;
-                var relevantSprites = _sprites.Where(x => x.Name == "girl").ToList();
+                var relevantSprites = _sprites.Where(x => x.Name == spriteInfo.SpriteName).ToList();
                 var bestMatch = relevantSprites.OrderBy(x => x.Distance).FirstOrDefault(x => x.Distance > spriteInfo.Distance)
                                 ;
                 if(bestMatch == null){continue;}
@@ -182,6 +197,37 @@ namespace Ascii
                     }
                 }
             }
+
+            var sun = sprites.FirstOrDefault(x => x.SpriteName == "sun");
+            if (sun != null)
+            {
+                var spriteWidth = (sun.SpriteEndX - sun.SpriteStartX);
+                var middleX = sun.SpriteStartX + spriteWidth / 2;
+                var sunSprite = _sprites.First(x => x.Name == sun.SpriteName);
+
+                var startY = 3;
+                var spriteChars = sunSprite.Chars;
+                var startX = middleX - (spriteChars[0].Length / 2);
+                for (int yy = 0; yy < spriteChars.Length; yy++)
+                {
+                    for (int xx = 0; xx < spriteChars[yy].Length; xx++)
+                    {
+                        var yyy = yy + startY;
+                        var xxx = xx + startX;
+                        var bufferCoord = State.SBP(xxx, yyy);
+                        if (bufferCoord >= 0 && bufferCoord < State.ScreenBuffer.Length
+                                             && spriteChars[yy][xx] != ' ')
+                        {
+                            if (State.ScreenBuffer[bufferCoord] != ' ' )
+                            {
+                                continue;
+                            }
+                            State.ScreenBuffer[bufferCoord] = spriteChars[yy][xx];
+                        }
+                    }
+                }
+
+            }
         }
 
         private void RegisterSprite(List<SpriteInfo> sprites, int rayTestY, int rayTestX, char name, int viewX, double distanceToSprite)
@@ -194,7 +240,7 @@ namespace Ascii
                 {
                     SpritePositionX = rayTestX,
                     SpritePositionY = rayTestY,
-                    SpriteName = "MarsBabe.txt",
+                    SpriteName = GetSpriteName(name),
                     Distance = distanceToSprite,
                     SpriteStartX = viewX,
                 };
@@ -202,6 +248,33 @@ namespace Ascii
             }
             sprite.SpriteEndX = viewX;
 
+        }
+        private void RegisterSprite(List<SpriteInfo> sprites, double rayTestY, double rayTestX, char name, int viewX, double distanceToSprite)
+        {
+            var sprite = (sprites.FirstOrDefault(s => s.SpritePositionX == rayTestX && s.SpritePositionY == rayTestY));
+
+            if (sprite == null)
+            {
+                sprite = new SpriteInfo
+                {
+                    SpritePositionX = rayTestX,
+                    SpritePositionY = rayTestY,
+                    SpriteName = GetSpriteName(name),
+                    Distance = distanceToSprite,
+                    SpriteStartX = viewX,
+                };
+                sprites.Add(sprite);
+            }
+            sprite.SpriteEndX = viewX;
+
+        }
+
+        private string GetSpriteName(char name)
+        {
+            if (name == 'b') return "girl";
+            if (name == 'c') return "chick";
+            if (name == 's') return "sun";
+            return "chick";
         }
 
 
@@ -240,8 +313,8 @@ namespace Ascii
 
     public class SpriteInfo
     {
-        public int SpritePositionX { get; set; }
-        public int SpritePositionY { get; set; }
+        public double SpritePositionX { get; set; }
+        public double SpritePositionY { get; set; }
         public string SpriteName { get; set; }
         public int SpriteStartX { get; set; }
         public int SpriteEndX { get; set; }

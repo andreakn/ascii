@@ -12,10 +12,10 @@
 
         public void CalculateScore()
         {
-            if (_state.ReadMap(_state.PlayerCoord) == 'o')
+            if (_state.ReadMap(_state.Player.Coord) == 'o')
             {
                 //_state.Redness = 0;
-                _state.SetMap(_state.PlayerCoord, '.');
+                _state.SetMap(_state.Player.Coord, '.');
             }
 
 

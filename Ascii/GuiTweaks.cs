@@ -15,13 +15,13 @@ namespace Ascii
         {
             if (NativeKeyboard.IsKeyDown(KeyCode.Plus))
             {
-                State.FOV += Math.PI / 1024.0;
-                State.FOV = Math.Min(State.FOV, Math.PI *2.0);
+                State.Player.FOV += Math.PI / 1024.0;
+                State.Player.FOV = Math.Min(State.Player.FOV, Math.PI *2.0);
             }
             if (NativeKeyboard.IsKeyDown(KeyCode.Minus))
             {
-                State.FOV -= Math.PI / 1024.0;
-                State.FOV = Math.Max(State.FOV, Math.PI / 16.0);
+                State.Player.FOV -= Math.PI / 1024.0;
+                State.Player.FOV = Math.Max(State.Player.FOV, Math.PI / 16.0);
             }
             if (NativeKeyboard.IsKeyDown(KeyCode.O))
             {

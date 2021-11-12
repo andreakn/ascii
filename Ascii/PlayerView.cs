@@ -24,7 +24,7 @@ namespace Ascii
             for (int x = 0; x < screenWidth; x++)
             {
                 // For each column, calculate the projected ray angle into world space
-                double rayAngle = (State.PlayerViewAngle - (State.FOV / 2.0)) + (x * State.FOV / (double)screenWidth);
+                double rayAngle = (State.Player.ViewAngle - (State.Player.FOV / 2.0)) + (x * State.Player.FOV / (double)screenWidth);
                 var rayResolution = 0.1;
                 var distanceToWall = 0.0;
 
@@ -36,8 +36,8 @@ namespace Ascii
                 while (!wallHit && distanceToWall < State.RenderDepth)
                 {
                     distanceToWall += rayResolution;
-                    var rayTestX = (int)(State.PlayerCoord.X + (eyeX * distanceToWall));
-                    var rayTestY = (int)(State.PlayerCoord.Y + (eyeY * distanceToWall));
+                    var rayTestX = (int)(State.Player.Coord.X + (eyeX * distanceToWall));
+                    var rayTestY = (int)(State.Player.Coord.Y + (eyeY * distanceToWall));
                     if (rayTestX < 0 || rayTestX >= State.MapWidth || rayTestY < 0 || rayTestY >= State.MapHeight)
                     {
                         wallHit = true; //No need to see beyond world
@@ -54,8 +54,8 @@ namespace Ascii
                             {
                                 for (var ty = 0; ty < 2; ty++)
                                 {
-                                    var vy = rayTestY + ty - State.PlayerCoord.Y;
-                                    var vx = rayTestX + tx - State.PlayerCoord.X;
+                                    var vy = rayTestY + ty - State.Player.Coord.Y;
+                                    var vx = rayTestX + tx - State.Player.Coord.X;
                                     var d = Math.Sqrt(vx * vx + vy * vy);
                                     var dot = (eyeX * vx / d) + (eyeY * vy) / d;
                                     p.Add(new Tuple<double, double>(d,dot));
@@ -79,7 +79,7 @@ namespace Ascii
                 else if (distanceToWall < renderDepth) nShade = (char)0x2591;
                 else nShade = ' ';
 
-                if (edgeHit) nShade = ' '; // Black it out
+                if (edgeHit) nShade = '|'; // Black it out
 
                 for (int y = 0; y < screenHeight; y++)
                 {

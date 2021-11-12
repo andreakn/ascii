@@ -26,6 +26,7 @@
 
         public void TryToPutDown()
         {
+            _state.PlayerCurrentlyHolding = '#';
             if (_state.PlayerCurrentlyHolding == '.')
             {
                 return;

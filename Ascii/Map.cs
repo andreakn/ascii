@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Ascii
 {
     public class Map
     {
+
+        private Random random = new Random();
         private readonly char[][] map;
 
         private bool mPressed = false;
@@ -33,9 +37,17 @@ namespace Ascii
                         State.ScreenBuffer[b] = '-';
                     }
 
-                    if (le_x == (int)State.PlayerCoord.X && y == (int)State.PlayerCoord.Y)
+                    foreach (var mob in State.Mobs)
                     {
-                        State.ScreenBuffer[b] = CalculatePlayerChar(State.PlayerViewAngle);
+                        if (le_x == (int)mob.Coord.X && y == (int)mob.Coord.Y)
+                        {
+                            State.ScreenBuffer[b] = 'X';
+                        }
+                    }
+
+                    if (le_x == (int)State.Player.Coord.X && y == (int)State.Player.Coord.Y)
+                    {
+                        State.ScreenBuffer[b] = CalculatePlayerChar(State.Player.ViewAngle);
                     }
 
                 }
@@ -105,6 +117,31 @@ namespace Ascii
             }
 
 
+        }
+
+        public List<Mob> ReadAndRemoveMobs()
+        {
+            var ret = new List<Mob>();
+            for (int y = 0; y < State.MapHeight; y++)
+            {
+                for (int x = 0; x < State.MapWidth; x++)
+                {
+                    if (State.Map[y][x] == 'c')
+                    {
+                        ret.Add(new Mob
+                        {
+                            Coord = new Coord
+                            {
+                                Y = y,X=x
+                            },
+                            ViewAngle = random.NextDouble()*Math.PI*2
+                        });
+                        State.Map[y][x] = '.';
+                    }
+                }
+            }
+
+            return ret;
         }
     }
 }

@@ -64,28 +64,7 @@ namespace Ascii
         public void DrawLazer()
         {
 
-            State.LazerMapCoords = new List<Coord>();
-            State.LazerVectors.RemoveAll(v => v.Ticks < DateTime.UtcNow.AddSeconds(-30).Ticks);
-            foreach (var vector in State.LazerVectors)
-            {
-                var lazerEnd = RayTrace(vector.Coord, vector.Angle, State.LazerMapCoords);
-
-                for (int x = 0; x < State.ScreenWidth; x++)
-                {
-                    double rayAngle = (State.PlayerViewAngle - (State.FOV / 2.0)) + (x * State.FOV / (double)State.ScreenWidth);
-                    var viewRayTraceEnd = RayTrace(State.PlayerCoord, rayAngle);
-
-                    var lazerRayIntersection = Helpers.get_line_intersection(State.PlayerCoord, viewRayTraceEnd, lazerEnd, vector.Coord);
-                    if (lazerRayIntersection.HasValue)
-                    {
-                        var y = (int)(State.ScreenHeight / 2.0);
-                        var buffercoord = State.SBP(x, y);
-                        State.ScreenBuffer[buffercoord] = '-';
-                    }
-                }
-
-
-            }
+           
 
         }
 

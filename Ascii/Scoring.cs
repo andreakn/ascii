@@ -14,7 +14,7 @@
         {
             if (_state.ReadMap(_state.PlayerCoord) == 'o')
             {
-                _state.Redness = 0;
+                //_state.Redness = 0;
                 _state.SetMap(_state.PlayerCoord, '.');
             }
 

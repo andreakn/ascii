@@ -20,7 +20,10 @@
         Minus = 189,
         O = 79,
         P = 80,
-        Spacebar = 32
+        Spacebar = 32,
+        R = 82,
+        E = 69
+
     }
 
    

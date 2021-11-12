@@ -1,12 +1,56 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace Ascii
 {
+    public class Sprite
+    {
+        public char[][] Chars { get; set; }
+        public string Name { get; set; }
+        public int Distance { get; set; }
+    }
+
     public class Sprites
     {
+        private List<Sprite> _sprites = ReadSpriteFiles();
+
+        private static List<Sprite> ReadSpriteFiles()
+        {
+            var sprites = new List<Sprite>();
+            foreach (var file in Directory.EnumerateFiles("sprites"))
+            {
+                if (file.EndsWith(".txt") && file.Contains("_"))
+                {
+                    var lines = File.ReadAllLines(file);
+                    var size = int.Parse(file.Split('.')[0].Split('_')[1]);
+                    var fileName = file.Replace("sprites\\", "");
+                    var sprite = new Sprite
+                    {
+                        Name = fileName.Split('_')[0],
+                        Distance = size,
+                        Chars = new char[lines.Length][]
+                    };
+                    for (var index = 0; index < sprite.Chars.Length; index++)
+                    {
+                        var line = lines[index];
+                        sprite.Chars[index] = line.ToCharArray();
+                    }
+                    sprites.Add(sprite);
+                }
+            }
+
+            return sprites;
+        }
+
         public Sprites(GameState state)
         {
             this.State = state;
+            var babe = File.ReadAllLines("MarsBabe.txt");
+
+
+          
         }
 
         public GameState State { get; set; }
@@ -15,6 +59,11 @@ namespace Ascii
 
         public void RenderSpritesToScreenBuffer()
         {
+            var babeDistance = -1D;
+            var babeStartX = -1;
+
+            List<SpriteInfo> sprites = new();
+
             for (int x = 0; x < State.ScreenWidth; x++)
             {
                 // For each column, calculate the projected ray angle into world space
@@ -31,6 +80,8 @@ namespace Ascii
                 var bullsEyeY = 0.0;
                 var bullsEyeX = 0.0;
                 var bullsEyeXY = 0.0;
+
+
 
 
                 while (spriteHit == null && distanceToSprite < State.RenderDepth)
@@ -50,6 +101,10 @@ namespace Ascii
                         if (State.Map[rayTestY][rayTestX] == '#')
                         {
                             spriteHit = ' '; //wall is not sprite
+                        }
+                        else if (State.Map[rayTestY][rayTestX] == 'b')
+                        {
+                            RegisterSprite(sprites, rayTestY, rayTestX, 'b', x, distanceToSprite);
                         }
                         else if (State.Map[rayTestY][rayTestX] != '.')
                         {
@@ -92,6 +147,104 @@ namespace Ascii
                     }
                 }
             }
+
+            foreach (var spriteInfo in sprites.OrderByDescending(s=>s.Distance))
+            {
+                var spriteWidth = (spriteInfo.SpriteEndX - spriteInfo.SpriteStartX);
+                var middleX =  spriteInfo.SpriteStartX + spriteWidth/ 2;
+                var relevantSprites = _sprites.Where(x => x.Name == "girl").ToList();
+                var bestMatch = relevantSprites.OrderBy(x => x.Distance).FirstOrDefault(x => x.Distance > spriteInfo.Distance)
+                                ;
+                if(bestMatch == null){continue;}
+                var spriteChars = bestMatch.Chars;
+                var startX = middleX - (spriteChars[0].Length/2);
+
+                var ceiling = (int)(((double)State.ScreenHeight / 2.0) - ((double)State.ScreenHeight / spriteInfo.Distance));
+                var endY = State.ScreenHeight - ceiling;
+                var startY = endY - spriteChars.Length;
+
+                for (int yy = 0; yy < spriteChars.Length; yy++)
+                {
+                    for (int xx = 0; xx < spriteChars[yy].Length; xx++)
+                    {
+                        var yyy = yy + startY;
+                        var xxx = xx + startX;
+                        var bufferCoord = State.SBP(xxx, yyy);
+                        if (bufferCoord >= 0 && bufferCoord < State.ScreenBuffer.Length
+                                             && spriteChars[yy][xx] != ' ')
+                        {
+                            if (State.ScreenBuffer[bufferCoord] == '\n')
+                            {
+                                continue;
+                            }
+                            State.ScreenBuffer[bufferCoord] = spriteChars[yy][xx];
+                        }
+                    }
+                }
+            }
         }
+
+        private void RegisterSprite(List<SpriteInfo> sprites, int rayTestY, int rayTestX, char name, int viewX, double distanceToSprite)
+        {
+            var sprite = (sprites.FirstOrDefault(s => s.SpritePositionX == rayTestX && s.SpritePositionY == rayTestY));
+
+            if (sprite == null)
+            {
+                sprite = new SpriteInfo
+                {
+                    SpritePositionX = rayTestX,
+                    SpritePositionY = rayTestY,
+                    SpriteName = "MarsBabe.txt",
+                    Distance = distanceToSprite,
+                    SpriteStartX = viewX,
+                };
+                sprites.Add(sprite);
+            }
+            sprite.SpriteEndX = viewX;
+
+        }
+
+
+        private void RenderBabe(int babeStartX, double babeDistance)
+        {
+            //for(int i = 0; i<_babe.Length; i++)
+            //for (int j = 0; j < _babe[i].Length; j++)
+            //{
+            //    var middle = State.ScreenHeight / 2.0;
+
+            //    var normalCeiling = (middle - ((double)State.ScreenHeight / distanceToSprite));
+            //    var closerToCenter = (normalCeiling + middle) / 2.0;
+            //    var evenCloserToCenter = (closerToCenter + middle) / 2.0;
+            //    var heightFromMiddle = middle - evenCloserToCenter;
+
+            //    var from = (int)(middle - heightFromMiddle);
+            //    var to = (int)(middle + heightFromMiddle);
+
+            //    for (int y = 0; y < State.ScreenHeight; y++)
+            //    {
+            //        var centerness = 1 - Math.Abs(y - middle) / middle;
+
+            //        if (y > from && y <= to)
+            //        {
+            //            if (Math.Sqrt(centerness * bullsEyeXY) > 0.80)
+            //            {
+            //                var buffercoord = State.SBP(x, y);
+            //                State.ScreenBuffer[buffercoord] = spriteHit.Value;
+            //            }
+            //        }
+            //    }
+            //    }
+        }
+    }
+
+
+    public class SpriteInfo
+    {
+        public int SpritePositionX { get; set; }
+        public int SpritePositionY { get; set; }
+        public string SpriteName { get; set; }
+        public int SpriteStartX { get; set; }
+        public int SpriteEndX { get; set; }
+        public double Distance { get; set; }
     }
 }

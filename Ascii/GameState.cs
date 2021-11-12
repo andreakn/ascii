@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Ascii
@@ -39,11 +40,12 @@ namespace Ascii
         public double PlayerViewAngle { get; set; }
         public int MapWidth { get; set; }
         public int MapHeight{ get; set; }
-        public int Redness { get; set; }
+        //public int Redness { get; set; }
         public List<Coord> LazerMapCoords { get; set; } = new List<Coord>();
         public List<LazerVector> LazerVectors { get; set; } = new List<LazerVector>();
         public Coord PlayerCoord { get; set; } = new Coord();
         public int PlayerNumber { get; set; }
+        public char PlayerCurrentlyHolding { get; set; } = '.';
 
 
         public int SBP(int x, int y)
@@ -83,6 +85,29 @@ namespace Ascii
         public bool IsValidPlayerPosition(Coord coord)
         {
             return ReadMap(coord) != '#';
+        }
+
+        public Coord FigureOutNextMapCoord()
+        {
+
+            var rayResolution = 0.1;
+            var distance = 0.0;
+
+            var xFactor = Math.Sin(PlayerViewAngle);
+            var yFactor = Math.Cos(PlayerViewAngle);
+
+            var rayEndX = PlayerCoord.X;
+            var rayEndY = PlayerCoord.Y;
+
+            while ( (int)rayEndX==(int)PlayerCoord.X && (int)rayEndY==(int)PlayerCoord.Y)
+            {
+                distance += rayResolution;
+                rayEndX = (int)(PlayerCoord.X + (xFactor * distance));
+                rayEndY = (int)(PlayerCoord.Y + (yFactor * distance));
+            }
+
+            return new Coord { X = rayEndX, Y = rayEndY };
+
         }
     }
 }

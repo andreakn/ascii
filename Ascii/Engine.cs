@@ -23,11 +23,12 @@ namespace Ascii
                 Map = mapString.Replace("\r", "").Split("\n").Select(line => line.ToCharArray()).ToArray(),
                 PlayerViewAngle = 0,
                 ScreenBuffer = new char[0],
-                Redness = 0
+                //Redness = 0
             };
             state.ReadStartingPositionFromMap(playerNumber);
             theMap = new Map(state);
-            _movement = new PlayerMovement(state);
+            _inventory = new Inventory(state);
+            _movement = new PlayerMovement(state, _inventory);
             _playerView = new PlayerView(state);
             _sprites = new Sprites(state);
             _tweak = new GuiTweaks(state);
@@ -41,6 +42,7 @@ namespace Ascii
         private readonly GuiTweaks _tweak;
         private readonly Scoring _scoring;
         private readonly Lazer _lazer;
+        private readonly Inventory _inventory;
 
         public async Task Run()
         {
@@ -84,7 +86,6 @@ namespace Ascii
                 _tweak.TweakGuiBasedOnUserInput();
                 _playerView.RenderViewToScreenBuffer();
                 _sprites.RenderSpritesToScreenBuffer();
-                _lazer.DrawLazer();
 
                 theMap.ShowMapIfAppropriate();
                 RenderScreenBufferToConsole();
@@ -120,7 +121,7 @@ namespace Ascii
 
         private bool HasLost()
         {
-            return state.Redness >= 0xE0;
+            return false; //state.Redness >= 0xE0;
         }
 
         private bool HasWon()
@@ -132,13 +133,13 @@ namespace Ascii
         private void RenderScreenBufferToConsole()
         {
             Console.SetCursorPosition(0,0);
-            var hexValue = (0xFF - state.Redness).ToString("X");
-            var color = $"#FF{hexValue}{hexValue}";
-            if (state.LazerMapCoords.Any(lc => lc.Schmequals(state.PlayerCoord)))
-            {
-                color = "#FF0000";
-            }
-            Console.Write(new string(state.ScreenBuffer).Pastel(color));
+            //var hexValue = (0xFF - state.Redness).ToString("X");
+            //var color = $"#FF{hexValue}{hexValue}";
+            //if (state.LazerMapCoords.Any(lc => lc.Schmequals(state.PlayerCoord)))
+            //{
+            //    color = "#FF0000";
+            //}
+            Console.Write(new string(state.ScreenBuffer));//.Pastel(color));
             Console.WriteLine($"p:{state.PlayerCoord.X}/{state.PlayerCoord.Y} ({state.PlayerViewAngle})                                                            ".Pastel(Color.White));
         }
 

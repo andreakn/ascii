@@ -5,13 +5,15 @@ namespace Ascii
     public class PlayerMovement
     {
         private GameState _state;
+        private readonly Inventory _inventory;
 
         private double speed = 5;
         private double turningspeed = 2;
 
-        public PlayerMovement(GameState state)
+        public PlayerMovement(GameState state, Inventory inventory)
         {
             _state = state;
+            _inventory = inventory;
         }
 
 
@@ -84,14 +86,13 @@ namespace Ascii
 
 
 
-            if (NativeKeyboard.IsKeyDown(KeyCode.Spacebar))
+            if (NativeKeyboard.IsKeyDown(KeyCode.E))
             {
-                _state.LazerVectors.Add(new LazerVector
-                {
-                    Coord = _state.PlayerCoord,
-                    Angle = _state.PlayerViewAngle,
-                    Ticks = DateTime.UtcNow.Ticks
-                });
+                _inventory.TryToPickUp();
+            }
+            if (NativeKeyboard.IsKeyDown(KeyCode.R))
+            {
+                _inventory.TryToPutDown();
             }
 
         }

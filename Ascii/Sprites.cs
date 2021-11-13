@@ -81,7 +81,7 @@ namespace Ascii
                 var bullsEyeXY = 0.0;
 
 
-                if (Math.Abs(rayAngle) < 0.1)
+                if (Math.Abs((rayAngle%(Math.PI*2))) < 0.1)
                 {
                     RegisterSprite(sprites, 0, 0, 's',x,100);
                 }

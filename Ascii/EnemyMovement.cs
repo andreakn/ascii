@@ -1,4 +1,7 @@
-﻿namespace Ascii
+﻿using System;
+using System.Linq;
+
+namespace Ascii
 {
     public class EnemyMovement
     {
@@ -33,6 +36,27 @@
             }
 
 
+        }
+
+        public void HandleEnemyCollisions()
+        {
+            foreach (var mob in _state.Mobs.ToList())
+            {
+                if (mob.Coord.IsNear(_state.Player.Coord, 1))
+                {
+                    try
+                    {
+                        Console.Beep(1000 -(50* _state.Mobs.Count), 200);
+                    }
+                    catch
+                    {
+                        Console.Beep();
+                    }
+                    _state.Mobs.Remove(mob);
+                }
+
+
+            }
         }
     }
 }

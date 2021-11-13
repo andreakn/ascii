@@ -10,7 +10,7 @@ namespace Ascii
         public static async Task Main(string[] args)
         {
             ConsoleHelper.SetCurrentFont("Consolas", 5);
-            var engine = new Engine(await File.ReadAllTextAsync("map.txt"),1);
+            var engine = new Engine();
             await engine.Run();
         }
 

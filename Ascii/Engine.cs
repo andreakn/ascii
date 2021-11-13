@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -14,21 +15,14 @@ namespace Ascii
         public GameState state;
         private Map theMap;
 
-        public Engine(string mapString, int playerNumber)
+        public Engine()
         {
 
             state = new GameState
             {
-                Map = mapString.Replace("\r", "").Split("\n").Select(line => line.ToCharArray()).ToArray(),
-                ScreenBuffer = new char[0],
-                //Redness = 0
             };
-            state.ReadStartingPositionFromMap(playerNumber);
             theMap = new Map(state);
-            foreach (var mob in theMap.ReadAndRemoveMobs())
-            {
-                state.Mobs.Add(mob);
-            }
+           
             _inventory = new Inventory(state);
             _movement = new Movement(state, _inventory);
             _playerView = new PlayerView(state);
@@ -36,6 +30,8 @@ namespace Ascii
             _tweak = new GuiTweaks(state);
             _scoring = new Scoring(state);
             _lazer = new Lazer(state);
+            _audio = new Audio();
+
             _enemyMovement = new EnemyMovement(state, _movement);
         }
 
@@ -47,6 +43,8 @@ namespace Ascii
         private readonly Lazer _lazer;
         private readonly Inventory _inventory;
         private readonly EnemyMovement _enemyMovement;
+        private readonly Audio _audio;
+        private readonly Sunset _sunset;
 
         public async Task Run()
         {
@@ -54,15 +52,25 @@ namespace Ascii
             var t2 = DateTime.Now;
             var counter = 0;
             var win = false;
+            var level = 0;
+            var levelFinished = 0;
+            _audio.PlayAudio();
             while (true)
             {
-                state.ScreenHeight = Console.WindowHeight-2;
-                state.ScreenWidth = Console.WindowWidth-2;
+                state.ScreenHeight = Console.WindowHeight - 2;
+                state.ScreenWidth = Console.WindowWidth - 2;
+
+                if (levelFinished == level)
+                {
+                    RenderSuccessSplash(level);
+                    level++;
+                    InitializeLevel(level);
+                }
+
 
                 if (HasWon())
                 {
-                    win = true;
-                    break;
+                    levelFinished++;
                 }
                 else if (HasLost())
                 {
@@ -87,6 +95,7 @@ namespace Ascii
                 t1 = t2;
                 _movement.HandleMovementForPlayer(elapsed);
                 _enemyMovement.HandleEnemyMovements(elapsed);
+                _enemyMovement.HandleEnemyCollisions();
 
                 _scoring.CalculateScore();
                 _tweak.TweakGuiBasedOnUserInput();
@@ -99,6 +108,17 @@ namespace Ascii
             }
 
             PrintSplashScreen(win ? "You WIN!" : "You LOSE!");
+        }
+
+        private void RenderSuccessSplash(int level)
+        {
+            PrintSplashScreen( "Level "+level);
+        }
+
+        private void InitializeLevel(int level)
+        {
+            var mapString = File.ReadAllText($"map{level}.txt");
+            state.Initialize(mapString);
         }
 
         private void PrintSplashScreen(string message)
@@ -133,7 +153,7 @@ namespace Ascii
 
         private bool HasWon()
         {
-            return !state.Map.Any(y=>y.Any(x=>x == 'o'));
+            return !state.Mobs.Any();
         }
 
 

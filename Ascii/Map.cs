@@ -8,7 +8,6 @@ namespace Ascii
     {
 
         private Random random = new Random();
-        private readonly char[][] map;
 
         private bool mPressed = false;
         private bool showMap = false;
@@ -22,15 +21,15 @@ namespace Ascii
 
         public void RenderMapToScreenBuffer()
         {
-            int mapHeight = map.Length;
-            int mapWidth = map[0].Length;             // World Dimensions
+            int mapHeight = State.Map.Length;
+            int mapWidth = State.Map[0].Length;             // World Dimensions
             for (int y = 0; y < mapHeight; y++)
             {
                 for (int x = 0; x < mapWidth; x++)
                 {
                     var le_x = (mapWidth - 1) - x;
                     var b = SBP(x, y + 1);
-                    State.ScreenBuffer[b] = map[y][le_x];
+                    State.ScreenBuffer[b] = State.Map[y][le_x];
 
                     if (State.LazerMapCoords.Contains(new Coord { X = le_x, Y = y }))
                     {
@@ -66,7 +65,6 @@ namespace Ascii
         public Map(GameState state)
         {
             this.State = state;
-            this.map = state.Map;
         }
 
         public GameState State { get; set; }
@@ -119,29 +117,6 @@ namespace Ascii
 
         }
 
-        public List<Mob> ReadAndRemoveMobs()
-        {
-            var ret = new List<Mob>();
-            for (int y = 0; y < State.MapHeight; y++)
-            {
-                for (int x = 0; x < State.MapWidth; x++)
-                {
-                    if (State.Map[y][x] == 'c')
-                    {
-                        ret.Add(new Mob
-                        {
-                            Coord = new Coord
-                            {
-                                Y = y,X=x
-                            },
-                            ViewAngle = random.NextDouble()*Math.PI*2
-                        });
-                        State.Map[y][x] = '.';
-                    }
-                }
-            }
-
-            return ret;
-        }
+        
     }
 }

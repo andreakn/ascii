@@ -186,6 +186,7 @@ namespace Ascii
             loadSound("background", "wav/wind.wav");
             loadSound("chicken-1", "wav/chicken-1.wav");
             loadSound("chicken-2", "wav/chicken-2.wav");
+            loadSound("babe", "wav/babe.wav");
         }
 
         public void unloadSound(string soundName)

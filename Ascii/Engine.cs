@@ -31,7 +31,8 @@ namespace Ascii
             _scoring = new Scoring(state);
             _lazer = new Lazer(state);
             _audio = new Audio();
-
+            _splash = new SplashScreen(state);
+            _sunset = new Sunset(state);
             _enemyMovement = new EnemyMovement(state, _movement);
         }
 
@@ -45,6 +46,7 @@ namespace Ascii
         private readonly EnemyMovement _enemyMovement;
         private readonly Audio _audio;
         private readonly Sunset _sunset;
+        private readonly SplashScreen _splash;
 
         public async Task Run()
         {
@@ -52,9 +54,25 @@ namespace Ascii
             var t2 = DateTime.Now;
             var counter = 0;
             var win = false;
-            var level = 0;
-            var levelFinished = 0;
+            var level = 1;
+            var levelFinished = 1;
             _audio.PlayAudio();
+
+
+
+            for (int i = 1; i < 8; i++)
+            {
+                state.ScreenHeight = Console.WindowHeight - 2;
+                state.ScreenWidth = Console.WindowWidth - 2;
+                _splash.PrintSplashScreen("story_"+i, true, 1000);
+            }
+            state.ScreenHeight = Console.WindowHeight - 2;
+            state.ScreenWidth = Console.WindowWidth - 2;
+            _splash.PrintSplashScreen("logo", true, 0);
+            Console.ReadKey();
+
+
+
             while (true)
             {
                 state.ScreenHeight = Console.WindowHeight - 2;
@@ -62,7 +80,7 @@ namespace Ascii
 
                 if (levelFinished == level)
                 {
-                    RenderSuccessSplash(level);
+                    RenderLevel(level);
                     level++;
                     InitializeLevel(level);
                 }
@@ -71,6 +89,11 @@ namespace Ascii
                 if (HasWon())
                 {
                     levelFinished++;
+                    if (levelFinished == 3)
+                    {
+                        _splash.PrintSplashScreen("win",true, 30000);
+                        break;
+                    }
                 }
                 else if (HasLost())
                 {
@@ -102,18 +125,21 @@ namespace Ascii
 
                 _playerView.RenderViewToScreenBuffer();
                 _sprites.RenderSpritesToScreenBuffer();
+                _sunset.CalculateTimeOfDay();
 
                 theMap.ShowMapIfAppropriate();
                 RenderScreenBufferToConsole();
             }
 
-            PrintSplashScreen(win ? "You WIN!" : "You LOSE!");
+            _splash.PrintSplashScreen("win");
         }
 
-        private void RenderSuccessSplash(int level)
+        private void RenderLevel(int level)
         {
-            PrintSplashScreen( "Level "+level);
+            _splash.PrintSplashScreen("level_"+level);
         }
+
+      
 
         private void InitializeLevel(int level)
         {
@@ -121,34 +147,11 @@ namespace Ascii
             state.Initialize(mapString);
         }
 
-        private void PrintSplashScreen(string message)
-        {
-            var height = state.ScreenHeight / 2;
-            var width = state.ScreenWidth / 2;
-            var startY = state.ScreenHeight / 4;
-            var startX = state.ScreenWidth / 4;
-            for (int y = 0; y < height; y++)
-            {
-                Console.SetCursorPosition(startX, startY + y);
-                Console.Write(string.Join("",Enumerable.Repeat("*",width)));
-            }
-
-            width -= 6;
-            height -= 4;
-            for (int y = 0; y < height; y++)
-            {
-                Console.SetCursorPosition(startX+3, startY +2 + y);
-                Console.Write(string.Join("", Enumerable.Repeat(" ", width)));
-            }
-            Console.SetCursorPosition(state.ScreenWidth/2 - (message.Length/2), state.ScreenHeight / 2);
-            Console.Write(message);
-            Console.SetCursorPosition(0, state.ScreenHeight-3);
-            Console.ReadKey();
-        }
+        
 
         private bool HasLost()
         {
-            return false; //state.Redness >= 0xE0;
+            return state.NightHasFallen;
         }
 
         private bool HasWon()
@@ -160,7 +163,7 @@ namespace Ascii
         private void RenderScreenBufferToConsole()
         {
             Console.SetCursorPosition(0,0);
-           var color = $"#BC2732";
+           var color = state.SunlightColor;
             
             Console.Write(new string(state.ScreenBuffer).Pastel(color));
             Console.WriteLine($"p:{state.Player.Coord.X}/{state.Player.Coord.Y} ({state.Player.ViewAngle})                                                            ".Pastel(Color.White));

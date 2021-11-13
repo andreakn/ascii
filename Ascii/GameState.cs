@@ -137,9 +137,6 @@ namespace Ascii
         public bool NightHasFallen { get; set; }
         public double SunHeight { get; set; }
         public string SunlightColor { get; set; }
-        public const int R = 188;
-        public const int G = 39;
-        public const int B = 50;
 
 
         public int SBP(int x, int y)
@@ -210,10 +207,10 @@ namespace Ascii
 
         public void Initialize(string mapString)
         {
-            StartTime = DateTime.Now;
+            StartTime = DateTime.Now.AddSeconds(-30);
             NightHasFallen = false;
                 
-            Map = mapString.Replace("\r", "").Split("\n").Select(line => line.ToCharArray()).ToArray();
+            Map = mapString.Replace("\r", "").Split("\n").Where(l=>!string.IsNullOrWhiteSpace(l)).Select(line => line.ToCharArray()).ToArray();
             ReadStartingPositionFromMap();
             Mobs.Clear();
             foreach (var mob in ReadAndRemoveMobs())

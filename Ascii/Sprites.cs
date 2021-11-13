@@ -205,7 +205,9 @@ namespace Ascii
                 var middleX = sun.SpriteStartX + spriteWidth / 2;
                 var sunSprite = _sprites.First(x => x.Name == sun.SpriteName);
 
-                var startY = 3;
+                var middleY = State.ScreenHeight / 2;
+                var startY =  middleY - (int)(State.SunHeight*middleY);
+
                 var spriteChars = sunSprite.Chars;
                 var startX = middleX - (spriteChars[0].Length / 2);
                 for (int yy = 0; yy < spriteChars.Length; yy++)

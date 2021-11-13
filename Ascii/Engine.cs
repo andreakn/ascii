@@ -30,7 +30,8 @@ namespace Ascii
             _tweak = new GuiTweaks(state);
             _scoring = new Scoring(state);
             _lazer = new Lazer(state);
-            _audio = new Audio();
+            _audioPlaybackEngine = new AudioPlaybackEngine(44100, 2);
+            _soundManager = new SoundManager();
 
             _enemyMovement = new EnemyMovement(state, _movement);
         }
@@ -43,7 +44,8 @@ namespace Ascii
         private readonly Lazer _lazer;
         private readonly Inventory _inventory;
         private readonly EnemyMovement _enemyMovement;
-        private readonly Audio _audio;
+        private readonly SoundManager _soundManager;
+        private static AudioPlaybackEngine _audioPlaybackEngine;
         private readonly Sunset _sunset;
 
         public async Task Run()
@@ -54,7 +56,13 @@ namespace Ascii
             var win = false;
             var level = 0;
             var levelFinished = 0;
-            _audio.PlayAudio();
+
+            string soundName = "background";
+            _soundManager.loadSound(soundName, "wav/wind.wav");
+
+            SoundInstance si = _soundManager.createSoundInstance(soundName);
+            _audioPlaybackEngine.PlaySoundInstance(si);
+
             while (true)
             {
                 state.ScreenHeight = Console.WindowHeight - 2;

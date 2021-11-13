@@ -37,7 +37,13 @@ namespace Ascii
             {
                 if (mob.Coord.IsNear(_state.Player.Coord, 2))
                 {
-                    var s = _soundManager.createSoundInstance("chicken-1");
+                    var sound = "chicken-1";
+                    if (mob.MobType == 'b')
+                    {
+                        sound = "babe";
+                    }
+
+                    var s = _soundManager.createSoundInstance(sound);
                     s.LoopingEnabled = false;
                     _audioPlaybackEngine.PlaySoundInstance(s);
                     //_audioPlaybackEngine.StopSoundInstance(s);

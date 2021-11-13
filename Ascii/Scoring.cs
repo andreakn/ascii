@@ -29,8 +29,8 @@ namespace Ascii
                 lines.Add($"{left[i]} {of[i]} {total[i]}");
             }
 
-            var startY = 3;
-            var startX = _state.ScreenWidth - 3 - lines.Max(x => x.Length);
+            var startY = 10;
+            var startX = _state.ScreenWidth - 10 - lines.Max(x => x.Length);
 
             for(int i = 0; i<lines.Count; i++)
             {

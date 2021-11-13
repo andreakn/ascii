@@ -61,7 +61,7 @@ namespace Ascii
 
             _audioPlaybackEngine.PlaySoundInstance(_soundManager.createSoundInstance("background"));
 
-            var showStory = false;
+            var showStory = true;
             if (showStory)
             {
                 for (int i = 1; i < 15; i++)

@@ -35,9 +35,12 @@ namespace Ascii
         {
             foreach (var mob in _state.Mobs.ToList())
             {
-                if (mob.Coord.IsNear(_state.Player.Coord, 1))
+                if (mob.Coord.IsNear(_state.Player.Coord, 2))
                 {
-                    _audioPlaybackEngine.PlaySoundInstance(_soundManager.createSoundInstance("chicken-1"));
+                    var s = _soundManager.createSoundInstance("chicken-1");
+                    s.LoopingEnabled = false;
+                    _audioPlaybackEngine.PlaySoundInstance(s);
+                    //_audioPlaybackEngine.StopSoundInstance(s);
                     _state.Mobs.Remove(mob);
                 }
 

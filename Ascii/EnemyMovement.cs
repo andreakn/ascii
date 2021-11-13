@@ -7,11 +7,15 @@ namespace Ascii
     {
         private GameState _state;
         private Movement _movement;
+        private SoundManager _soundManager;
+        private AudioPlaybackEngine _audioPlaybackEngine;
 
-        public EnemyMovement(GameState state, Movement movement)
+        public EnemyMovement(GameState state, Movement movement, SoundManager soundManager, AudioPlaybackEngine audioPlaybackEngine)
         {
             _state = state;
             _movement = movement;
+            _soundManager = soundManager;
+            _audioPlaybackEngine = audioPlaybackEngine;
         }
 
         public void HandleEnemyMovements(double elapsed)
@@ -44,14 +48,7 @@ namespace Ascii
             {
                 if (mob.Coord.IsNear(_state.Player.Coord, 1))
                 {
-                    try
-                    {
-                        Console.Beep(1000 -(50* _state.Mobs.Count), 200);
-                    }
-                    catch
-                    {
-                        Console.Beep();
-                    }
+                    _audioPlaybackEngine.PlaySoundInstance(_soundManager.createSoundInstance("chicken-1"));
                     _state.Mobs.Remove(mob);
                 }
 

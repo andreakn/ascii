@@ -183,7 +183,9 @@ namespace Ascii
 
         public SoundManager()
         {
-
+            loadSound("background", "wav/wind.wav");
+            loadSound("chicken-1", "wav/chicken-1.wav");
+            loadSound("chicken-2", "wav/chicken-2.wav");
         }
 
         public void unloadSound(string soundName)

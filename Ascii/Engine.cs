@@ -33,7 +33,7 @@ namespace Ascii
             _audioPlaybackEngine = new AudioPlaybackEngine(44100, 2);
             _soundManager = new SoundManager();
 
-            _enemyMovement = new EnemyMovement(state, _movement);
+            _enemyMovement = new EnemyMovement(state, _movement, _soundManager, _audioPlaybackEngine);
         }
 
         private readonly Movement _movement;
@@ -57,11 +57,7 @@ namespace Ascii
             var level = 0;
             var levelFinished = 0;
 
-            string soundName = "background";
-            _soundManager.loadSound(soundName, "wav/wind.wav");
-
-            SoundInstance si = _soundManager.createSoundInstance(soundName);
-            _audioPlaybackEngine.PlaySoundInstance(si);
+            _audioPlaybackEngine.PlaySoundInstance(_soundManager.createSoundInstance("background"));
 
             while (true)
             {

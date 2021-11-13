@@ -208,6 +208,12 @@
     <None Update="wav\wind.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+	<None Update="wav\chicken-1.wav">
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</None>
+	<None Update="wav\chicken-2.wav">
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</None>
   </ItemGroup>
 
 </Project>

@@ -28,62 +28,15 @@ namespace Ascii
 
     public class Mob: Entity
     {
-        private double RenderDepth = 7;
         public  string prevInput { get; set; }= "";
+        public char MobType { get; set; }
 
         public Mob()
         {
             Speed = 1;
         }
-
-        public double? CanSeePlayerAtAngle(Player statePlayer, GameState state)
-        {
-            double? foundAt = null;
-            var testAngle = 0.0;
-            
-            while (foundAt == null && testAngle < Math.PI * 2)
-            {
-                foundAt = RayTrace(state, Coord, testAngle, statePlayer.Coord);
-                testAngle += 0.2;
-            }
-            return null;
-        }
-
-
-        private double? RayTrace(GameState state, Coord fromCoord, double rayAngle, Coord targetCoord)
-        {
-            var rayResolution = 0.1;
-            var distanceToWall = 0.0;
-
-            var xFactor = Math.Sin(rayAngle);
-            var yFactor = Math.Cos(rayAngle);
-
-            var rayEndX = 0;
-            var rayEndY = 0;
-
-            while (distanceToWall < RenderDepth)
-            {
-                distanceToWall += rayResolution;
-                rayEndX = (int)(fromCoord.X + (xFactor * distanceToWall));
-                rayEndY = (int)(fromCoord.Y + (yFactor * distanceToWall));
-
-                if (rayEndY == (int)targetCoord.Y && rayEndX == (int)targetCoord.X)
-                {
-                    return rayAngle;
-                }
-               
-                if (rayEndX < 0 || rayEndX >= state.MapWidth || rayEndY < 0 || rayEndY >= state.MapHeight)
-                {
-                    break;
-                }
-                if (state.Map[rayEndY][rayEndX] == '#')
-                {
-                    break;
-                }
-            }
-
-            return null;
-        }
+        
+       
 
         public bool IsNear(double x, double y)
         {
@@ -137,6 +90,7 @@ namespace Ascii
         public bool NightHasFallen { get; set; }
         public double SunHeight { get; set; }
         public string SunlightColor { get; set; }
+        public int InitialMobCount { get; set; }
 
 
         public int SBP(int x, int y)
@@ -213,8 +167,10 @@ namespace Ascii
             Map = mapString.Replace("\r", "").Split("\n").Where(l=>!string.IsNullOrWhiteSpace(l)).Select(line => line.ToCharArray()).ToArray();
             ReadStartingPositionFromMap();
             Mobs.Clear();
+            InitialMobCount = 0;
             foreach (var mob in ReadAndRemoveMobs())
             {
+                InitialMobCount++;
                 Mobs.Add(mob);
             }
         }
@@ -227,17 +183,23 @@ namespace Ascii
             {
                 for (int x = 0; x < MapWidth; x++)
                 {
-                    if (Map[y][x] == 'c')
+                    if (Map[y][x] == 'c' || Map[y][x] == 'b')
                     {
-                        ret.Add(new Mob
+                        var mob = new Mob
                         {
                             Coord = new Coord
                             {
                                 Y = y,
                                 X = x
                             },
-                            ViewAngle = random.NextDouble() * Math.PI * 2
-                        });
+                            ViewAngle = random.NextDouble() * Math.PI * 2,
+                            MobType = Map[y][x]
+                        };
+                        if (mob.MobType == 'b')
+                        {
+                            mob.Speed = 5;
+                        }
+                        ret.Add(mob);
                         Map[y][x] = '.';
                     }
                 }

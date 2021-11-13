@@ -128,7 +128,7 @@ namespace Ascii
                     {
                         if (mob.IsNear(rayTestDX, rayTestDY))
                         {
-                            RegisterSprite(sprites, mob.Coord.Y, mob.Coord.X, 'c', x, distanceToSprite);
+                            RegisterSprite(sprites, mob.Coord.Y, mob.Coord.X, mob.MobType, x, distanceToSprite);
 
                         }
                     }

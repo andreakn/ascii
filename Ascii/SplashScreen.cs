@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -22,7 +23,7 @@ namespace Ascii
                 for(int i = 0; i<State.ScreenHeight; i++)
                 {
                     Console.SetCursorPosition(0,i);
-                    Console.Write(string.Join("", Enumerable.Repeat(" ",State.ScreenWidth)));
+                    Console.Write(string.Join("", Enumerable.Repeat(" ",State.ScreenWidth)).Pastel(Color.White));
                 }
             }
 
@@ -35,7 +36,7 @@ namespace Ascii
             for (int y = 0; y < height; y++)
             {
                 Console.SetCursorPosition(startX, startY + y);
-                Console.Write(string.Join("", Enumerable.Repeat("*", width)));
+                Console.Write(string.Join("", Enumerable.Repeat("*", width)).Pastel(Color.White));
             }
 
             width -= 6;
@@ -43,7 +44,7 @@ namespace Ascii
             for (int y = 0; y < height; y++)
             {
                 Console.SetCursorPosition(startX + 3, startY + 2 + y);
-                Console.Write(string.Join("", Enumerable.Repeat(" ", width)));
+                Console.Write(string.Join("", Enumerable.Repeat(" ", width)).Pastel(Color.White));
             }
 
             var lines = message.Replace("\r", "").Split('\n');
@@ -52,7 +53,7 @@ namespace Ascii
             for (int i = 0; i < lines.Length; i++)
             {
                 Console.SetCursorPosition(initialX, initialY+i );
-                Console.Write(lines[i]);
+                Console.Write(lines[i].Pastel(Color.White));
             }
 
             if (delayMillis > 0)

@@ -1,4 +1,7 @@
-﻿namespace Ascii
+﻿using System.Collections.Generic;
+using System.IO;
+
+namespace Ascii
 {
     public class Scoring
     {
@@ -10,15 +13,17 @@
         }
 
 
-        public void CalculateScore()
+        public void DisplayScore()
         {
-            if (_state.ReadMap(_state.Player.Coord) == 'o')
+            var left = File.ReadAllLines($"Numbers/{_state.Mobs.Count}.txt");
+            var total = File.ReadAllLines($"Numbers/{_state.InitialMobCount}.txt");
+            var of = File.ReadAllLines($"Numbers/of.txt");
+
+            var lines = new List<string>();
+            for (int i = 0; i < 8; i++)
             {
-                //_state.Redness = 0;
-                _state.SetMap(_state.Player.Coord, '.');
+
             }
-
-
         }
     }
 }

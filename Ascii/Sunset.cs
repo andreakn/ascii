@@ -11,7 +11,7 @@ namespace Ascii
         }
 
         public GameState State { get; set; }
-        public const int R = 188;
+        public const int R = 238;
         public const int G = 39;
         public const int B = 50;
 

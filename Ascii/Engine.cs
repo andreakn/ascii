@@ -30,7 +30,8 @@ namespace Ascii
             _tweak = new GuiTweaks(state);
             _scoring = new Scoring(state);
             _lazer = new Lazer(state);
-            _audio = new Audio();
+            _audioPlaybackEngine = new AudioPlaybackEngine(44100, 2);
+            _soundManager = new SoundManager();
             _splash = new SplashScreen(state);
             _sunset = new Sunset(state);
             _enemyMovement = new EnemyMovement(state, _movement);
@@ -44,7 +45,8 @@ namespace Ascii
         private readonly Lazer _lazer;
         private readonly Inventory _inventory;
         private readonly EnemyMovement _enemyMovement;
-        private readonly Audio _audio;
+        private readonly SoundManager _soundManager;
+        private static AudioPlaybackEngine _audioPlaybackEngine;
         private readonly Sunset _sunset;
         private readonly SplashScreen _splash;
 
@@ -54,17 +56,23 @@ namespace Ascii
             var t2 = DateTime.Now;
             var counter = 0;
             var win = false;
-            var level = 1;
-            var levelFinished = 1;
-            _audio.PlayAudio();
+            var level = 0;
+            var levelFinished = 0;
 
+            string soundName = "background";
+            _soundManager.loadSound(soundName, "wav/wind.wav");
+            SoundInstance si = _soundManager.createSoundInstance(soundName);
+            _audioPlaybackEngine.PlaySoundInstance(si);
 
-
-            for (int i = 1; i < 8; i++)
+            var showStory = false;
+            if (showStory)
             {
-                state.ScreenHeight = Console.WindowHeight - 2;
-                state.ScreenWidth = Console.WindowWidth - 2;
-                _splash.PrintSplashScreen("story_"+i, true, 1000);
+                for (int i = 1; i < 15; i++)
+                {
+                    state.ScreenHeight = Console.WindowHeight - 2;
+                    state.ScreenWidth = Console.WindowWidth - 2;
+                    _splash.PrintSplashScreen("story_" + i, true, 1500);
+                }
             }
             state.ScreenHeight = Console.WindowHeight - 2;
             state.ScreenWidth = Console.WindowWidth - 2;
@@ -73,6 +81,9 @@ namespace Ascii
 
 
 
+          
+           
+
             while (true)
             {
                 state.ScreenHeight = Console.WindowHeight - 2;
@@ -80,8 +91,8 @@ namespace Ascii
 
                 if (levelFinished == level)
                 {
-                    RenderLevel(level);
                     level++;
+                    RenderLevel(level);
                     InitializeLevel(level);
                 }
 
@@ -97,19 +108,9 @@ namespace Ascii
                 }
                 else if (HasLost())
                 {
-                    win = false;
+                    _splash.PrintSplashScreen("lose", true, 30000);
                     break;
                 }
-                else
-                {
-                    counter++;
-                    if (counter % 10 == 0)
-                    {
-                        //state.Redness += 1;
-                        counter = 0;
-                    }
-                }
-
                 
                state.RecalculateScreenBuffer();
 
@@ -120,7 +121,6 @@ namespace Ascii
                 _enemyMovement.HandleEnemyMovements(elapsed);
                 _enemyMovement.HandleEnemyCollisions();
 
-                _scoring.CalculateScore();
                 _tweak.TweakGuiBasedOnUserInput();
 
                 _playerView.RenderViewToScreenBuffer();
@@ -128,6 +128,8 @@ namespace Ascii
                 _sunset.CalculateTimeOfDay();
 
                 theMap.ShowMapIfAppropriate();
+                _scoring.DisplayScore();
+
                 RenderScreenBufferToConsole();
             }
 
@@ -136,7 +138,8 @@ namespace Ascii
 
         private void RenderLevel(int level)
         {
-            _splash.PrintSplashScreen("level_"+level);
+            _splash.PrintSplashScreen("level_"+level, true, 2000);
+            Console.ReadKey();
         }
 
       

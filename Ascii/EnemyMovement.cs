@@ -22,17 +22,6 @@ namespace Ascii
             foreach (var mob in _state.Mobs)
             {
                 _movement.HandleRandomMovementForMob(mob, elapsed);
-                continue;
-                var relativeAngleTowardsPlayer = mob.CanSeePlayerAtAngle(_state.Player,_state);
-                if (relativeAngleTowardsPlayer.HasValue)
-                {
-                    _movement.TryToGoThisWay(mob, relativeAngleTowardsPlayer.Value, elapsed);
-                }
-                else
-                {
-                    _movement.HandleRandomMovementForMob(mob, elapsed);
-                }
-
             }
 
 

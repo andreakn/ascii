@@ -34,7 +34,7 @@ namespace Ascii
             _soundManager = new SoundManager();
             _splash = new SplashScreen(state);
             _sunset = new Sunset(state);
-            _enemyMovement = new EnemyMovement(state, _movement);
+            _enemyMovement = new EnemyMovement(state, _movement, _soundManager, _audioPlaybackEngine);
         }
 
         private readonly Movement _movement;
@@ -59,10 +59,7 @@ namespace Ascii
             var level = 0;
             var levelFinished = 0;
 
-            string soundName = "background";
-            _soundManager.loadSound(soundName, "wav/wind.wav");
-            SoundInstance si = _soundManager.createSoundInstance(soundName);
-            _audioPlaybackEngine.PlaySoundInstance(si);
+            _audioPlaybackEngine.PlaySoundInstance(_soundManager.createSoundInstance("background"));
 
             var showStory = false;
             if (showStory)
@@ -128,9 +125,9 @@ namespace Ascii
                 _sunset.CalculateTimeOfDay();
 
                 theMap.ShowMapIfAppropriate();
-                _scoring.DisplayScore();
 
                 RenderScreenBufferToConsole();
+                _scoring.DisplayScore();
             }
 
             _splash.PrintSplashScreen("win");

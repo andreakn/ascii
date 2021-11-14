@@ -2,88 +2,85 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace Ascii
 {
     public class Sprite
     {
         public char[][] Chars { get; set; }
-        public string Name { get; set; }
+        public char Name { get; set; }
         public int Distance { get; set; }
     }
 
     public class Sprites
     {
-        private List<Sprite> _sprites = ReadSpriteFiles();
+        private List<Sprite> _sprites;
+        public GameState State { get; set; }
+        public Sprites(GameState state)
+        {
+            State = state;
+            _sprites = ReadSpriteFiles();
+        }
 
-        private static List<Sprite> ReadSpriteFiles()
+        private List<Sprite> ReadSpriteFiles()
         {
             var sprites = new List<Sprite>();
-            foreach (var file in Directory.EnumerateFiles("sprites"))
+            foreach (var entityDir in Directory.EnumerateDirectories($"{State.GameRootFolder}/entities"))
             {
-                if (file.EndsWith(".txt") && file.Contains("_"))
+                var entityName = new DirectoryInfo(Path.GetFileName(entityDir)).Name;
+
+                foreach (var file in Directory.EnumerateFiles($"{entityDir}/sprites"))
                 {
-                    var lines = File.ReadAllLines(file);
-                    var size = int.Parse(file.Split('.')[0].Split('_')[1]);
-                    var fileName = file.Replace("sprites\\", "");
-                    var sprite = new Sprite
+                    if (file.EndsWith(".txt"))
                     {
-                        Name = fileName.Split('_')[0],
-                        Distance = size,
-                        Chars = new char[lines.Length][]
-                    };
-                    for (var index = 0; index < sprite.Chars.Length; index++)
-                    {
-                        var line = lines[index];
-                        sprite.Chars[index] = line.ToCharArray();
+                        var fileName = new FileInfo(file).Name;
+                        var lines = File.ReadAllLines(file);
+                        var size = int.Parse(fileName.Split('.')[0]);
+                        var sprite = new Sprite
+                        {
+                            Name = entityName[0],
+                            Distance = size,
+                            Chars = new char[lines.Length][]
+                        };
+                        for (var index = 0; index < sprite.Chars.Length; index++)
+                        {
+                            var line = lines[index];
+                            sprite.Chars[index] = line.ToCharArray();
+                        }
+                        sprites.Add(sprite);
                     }
-                    sprites.Add(sprite);
                 }
+
+
+                
             }
 
             return sprites;
         }
 
-        public Sprites(GameState state)
-        {
-            this.State = state;
 
-
-          
-        }
-
-        public GameState State { get; set; }
 
 
 
         public void RenderSpritesToScreenBuffer()
         {
-            var babeDistance = -1D;
-            var babeStartX = -1;
-
             List<SpriteInfo> sprites = new();
 
             for (int x = 0; x < State.ScreenWidth; x++)
             {
-                // For each column, calculate the projected ray angle into world space
                 double rayAngle = (State.Player.ViewAngle - (State.Player.FOV / 2.0)) + (x * State.Player.FOV / (double)State.ScreenWidth);
                 var rayResolution = 0.1;
                 var distanceToSprite = 0.0;
 
                 char? spriteHit = null;
 
-                var edgeHit = false;
                 var eyeX = Math.Sin(rayAngle);
                 var eyeY = Math.Cos(rayAngle);
 
-                var bullsEyeY = 0.0;
-                var bullsEyeX = 0.0;
-                var bullsEyeXY = 0.0;
-
-
                 if (Math.Abs((rayAngle%(Math.PI*2))) < 0.1)
                 {
-                    RegisterSprite(sprites, 0, 0, 's',x,100);
+                    RegisterSprite(sprites, 0, 0, '*',x,100); //register the sun (special handling)
                 }
 
                 while (spriteHit == null && distanceToSprite < State.RenderDepth)
@@ -104,66 +101,20 @@ namespace Ascii
                         {
                             spriteHit = ' '; //wall is not sprite
                         }
-                        else if (State.Map[rayTestY][rayTestX] == 'b')
-                        {
-                            RegisterSprite(sprites, rayTestY, rayTestX, 'b', x, distanceToSprite);
-                        }
-                        else if (State.Map[rayTestY][rayTestX] == 'c')
-                        {
-                            RegisterSprite(sprites, rayTestY, rayTestX, 'c', x, distanceToSprite);
-                        }
-                        else if (State.Map[rayTestY][rayTestX] != '.')
-                        {
-                            bullsEyeY = (1 - 2* Math.Abs(rayTestDY - ((double) rayTestY + 0.5)));
-                            bullsEyeX = (1 - 2* Math.Abs(rayTestDX - ((double) rayTestX + 0.5)));
-                            bullsEyeXY = Math.Sqrt(bullsEyeX * bullsEyeY);
-                            if (bullsEyeXY > 0.75 )
-                            {
-                                spriteHit = State.Map[rayTestY][rayTestX];
-                            }
-                        }
                     }
 
                     foreach (var mob in State.Mobs)
                     {
-                        if (mob.IsNear(rayTestDX, rayTestDY))
+                        if (mob.IsNear(new Coord(rayTestDX, rayTestDY)))
                         {
-                            RegisterSprite(sprites, mob.Coord.Y, mob.Coord.X, mob.MobType, x, distanceToSprite);
-
+                            RegisterSprite(sprites, mob, x, distanceToSprite);
                         }
                     }
                 }
-
-
-                if (spriteHit.HasValue && spriteHit.Value != ' ')
-                {
-                    var middle = State.ScreenHeight / 2.0;
-
-                    var normalCeiling = (middle - ((double)State.ScreenHeight / distanceToSprite));
-                    var closerToCenter = (normalCeiling + middle)/2.0;
-                    var evenCloserToCenter = (closerToCenter + middle)/2.0;
-                    var heightFromMiddle =middle - evenCloserToCenter;
-
-                    var from = (int) (middle - heightFromMiddle);
-                    var to = (int)(middle + heightFromMiddle);
-
-                    for (int y = 0; y < State.ScreenHeight; y++)
-                    {
-                        var centerness = 1 - Math.Abs(y - middle) / middle;
-
-                        if (y > from && y <= to)
-                        {
-                            if (Math.Sqrt(centerness * bullsEyeXY) > 0.80)
-                            {
-                                var buffercoord = State.SBP(x, y);
-                                State.ScreenBuffer[buffercoord] = spriteHit.Value;
-                            }
-                        }
-                    }
-                }
+               
             }
 
-            foreach (var spriteInfo in sprites.Where(s=>s.SpriteName!="sun").OrderByDescending(s=>s.Distance))
+            foreach (var spriteInfo in sprites.Where(s=>s.SpriteName!='*').OrderByDescending(s=>s.Distance))
             {
                 var spriteWidth = (spriteInfo.SpriteEndX - spriteInfo.SpriteStartX);
                 var middleX =  spriteInfo.SpriteStartX + spriteWidth/ 2;
@@ -198,7 +149,7 @@ namespace Ascii
                 }
             }
 
-            var sun = sprites.FirstOrDefault(x => x.SpriteName == "sun");
+            var sun = sprites.FirstOrDefault(x => x.SpriteName == '_');
             if (sun != null)
             {
                 var spriteWidth = (sun.SpriteEndX - sun.SpriteStartX);
@@ -234,7 +185,7 @@ namespace Ascii
 
         private void RegisterSprite(List<SpriteInfo> sprites, int rayTestY, int rayTestX, char name, int viewX, double distanceToSprite)
         {
-            var sprite = (sprites.FirstOrDefault(s => s.SpritePositionX == rayTestX && s.SpritePositionY == rayTestY));
+            var sprite = (sprites.FirstOrDefault(s => s.SpriteName==name && s.SpritePositionX == rayTestX && s.SpritePositionY == rayTestY));
 
             if (sprite == null)
             {
@@ -242,7 +193,7 @@ namespace Ascii
                 {
                     SpritePositionX = rayTestX,
                     SpritePositionY = rayTestY,
-                    SpriteName = GetSpriteName(name),
+                    SpriteName = name,
                     Distance = distanceToSprite,
                     SpriteStartX = viewX,
                 };
@@ -251,64 +202,24 @@ namespace Ascii
             sprite.SpriteEndX = viewX;
 
         }
-        private void RegisterSprite(List<SpriteInfo> sprites, double rayTestY, double rayTestX, char name, int viewX, double distanceToSprite)
+        private void RegisterSprite(List<SpriteInfo> sprites, Mob mob, int viewX, double distanceToSprite)
         {
-            var sprite = (sprites.FirstOrDefault(s => s.SpritePositionX == rayTestX && s.SpritePositionY == rayTestY));
+            var mobSprite = (sprites.FirstOrDefault(s => s.Mob == mob));
 
-            if (sprite == null)
+            if (mobSprite == null)
             {
-                sprite = new SpriteInfo
+                mobSprite = new SpriteInfo
                 {
-                    SpritePositionX = rayTestX,
-                    SpritePositionY = rayTestY,
-                    SpriteName = GetSpriteName(name),
+                    Mob = mob,
+                    SpritePositionX = mob.Coord.X,
+                    SpritePositionY = mob.Coord.Y,
+                    SpriteName =mob.MobType,
                     Distance = distanceToSprite,
                     SpriteStartX = viewX,
                 };
-                sprites.Add(sprite);
+                sprites.Add(mobSprite);
             }
-            sprite.SpriteEndX = viewX;
-
-        }
-
-        private string GetSpriteName(char name)
-        {
-            if (name == 'b') return "girl";
-            if (name == 'c') return "chick";
-            if (name == 's') return "sun";
-            return "chick";
-        }
-
-
-        private void RenderBabe(int babeStartX, double babeDistance)
-        {
-            //for(int i = 0; i<_babe.Length; i++)
-            //for (int j = 0; j < _babe[i].Length; j++)
-            //{
-            //    var middle = State.ScreenHeight / 2.0;
-
-            //    var normalCeiling = (middle - ((double)State.ScreenHeight / distanceToSprite));
-            //    var closerToCenter = (normalCeiling + middle) / 2.0;
-            //    var evenCloserToCenter = (closerToCenter + middle) / 2.0;
-            //    var heightFromMiddle = middle - evenCloserToCenter;
-
-            //    var from = (int)(middle - heightFromMiddle);
-            //    var to = (int)(middle + heightFromMiddle);
-
-            //    for (int y = 0; y < State.ScreenHeight; y++)
-            //    {
-            //        var centerness = 1 - Math.Abs(y - middle) / middle;
-
-            //        if (y > from && y <= to)
-            //        {
-            //            if (Math.Sqrt(centerness * bullsEyeXY) > 0.80)
-            //            {
-            //                var buffercoord = State.SBP(x, y);
-            //                State.ScreenBuffer[buffercoord] = spriteHit.Value;
-            //            }
-            //        }
-            //    }
-            //    }
+            mobSprite.SpriteEndX = viewX;
         }
     }
 
@@ -317,9 +228,10 @@ namespace Ascii
     {
         public double SpritePositionX { get; set; }
         public double SpritePositionY { get; set; }
-        public string SpriteName { get; set; }
+        public char SpriteName { get; set; }
         public int SpriteStartX { get; set; }
         public int SpriteEndX { get; set; }
         public double Distance { get; set; }
+        public Mob Mob { get; set; }
     }
 }

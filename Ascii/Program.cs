@@ -10,11 +10,15 @@ namespace Ascii
         public static async Task Main(string[] args)
         {
             ConsoleHelper.SetCurrentFont("Consolas", 5);
-            var engine = new Engine();
-            await engine.Run();
+
+            var variant = "sfw";
+            if (false)
+            {
+                variant = "nsfw";
+            }
+
+            var engine = new Engine($"games/{variant}");
+            engine.Run();
         }
-
-
-
     }
 }

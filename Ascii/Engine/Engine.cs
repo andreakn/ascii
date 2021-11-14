@@ -59,7 +59,7 @@ namespace Ascii
 
             _audioPlaybackEngine.PlaySoundInstance(_soundManager.CreateSoundInstance("background",1,true));
 
-            var showIntro = false;
+            var showIntro = true;
             if (showIntro)
             {
                 foreach (var introFile in Directory.GetFiles($"{state.GameRootFolder}/intro").OrderBy(x=>x))

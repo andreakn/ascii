@@ -80,7 +80,7 @@ namespace Ascii
 
                 if (Math.Abs((rayAngle%(Math.PI*2))) < 0.1)
                 {
-                    RegisterSprite(sprites, 0, 0, '*',x,100); //register the sun (special handling)
+                    RegisterSprite(sprites, 0, 0, '_',x,100); //register the sun (special handling)
                 }
 
                 while (spriteHit == null && distanceToSprite < State.RenderDepth)
@@ -114,7 +114,7 @@ namespace Ascii
                
             }
 
-            foreach (var spriteInfo in sprites.Where(s=>s.SpriteName!='*').OrderByDescending(s=>s.Distance))
+            foreach (var spriteInfo in sprites.Where(s=>s.SpriteName!='_').OrderByDescending(s=>s.Distance))
             {
                 var spriteWidth = (spriteInfo.SpriteEndX - spriteInfo.SpriteStartX);
                 var middleX =  spriteInfo.SpriteStartX + spriteWidth/ 2;

@@ -19,8 +19,17 @@ namespace Ascii
 
         public void DisplayScore()
         {
-            var left = File.ReadAllLines($"Numbers/{_state.InitialMobCount - _state.Mobs.Count}.txt");
-            var total = File.ReadAllLines($"Numbers/{_state.InitialMobCount}.txt");
+            var leftNumbers = (_state.InitialMobCount - _state.Mobs.Count).ToString().ToCharArray().Select(ln=>File.ReadAllLines($"Numbers/{ln}.txt")).ToList();
+            var totalNumbers = _state.InitialMobCount.ToString().ToCharArray().Select(tn => File.ReadAllLines($"Numbers/{tn}.txt"));
+            var left = new List<string>();
+            var total = new List<string>();
+            for (int i = 0; i < 8; i++)
+            {
+                var i1 = i;
+                left.Add(string.Join(" ",leftNumbers.Select(ln=>ln[i1])));
+                total.Add(string.Join(" ", totalNumbers.Select(tn=>tn[i1])));
+            }
+
             var of = File.ReadAllLines($"Numbers/of.txt");
 
             var lines = new List<string>();

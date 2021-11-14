@@ -54,12 +54,12 @@ namespace Ascii
         {
             var prevTickStart = DateTime.Now;
             var thisTickStart = DateTime.Now;
-            var level = 0;
-            var levelFinished = 0;
+            var level = 2;
+            var levelFinished = 2;
 
             _audioPlaybackEngine.PlaySoundInstance(_soundManager.CreateSoundInstance("background",1,true));
 
-            var showIntro = true;
+            var showIntro = false;
             if (showIntro)
             {
                 foreach (var introFile in Directory.GetFiles($"{state.GameRootFolder}/intro").OrderBy(x=>x))
